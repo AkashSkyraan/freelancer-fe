@@ -1,8 +1,14 @@
-import { useState } from "react";
-import "./App.css";
+import React from "react";
+import AppRoutes from "./routes/Index";
+import GlobalLoader from "./components/loader/Loader.jsx";
 
-function App() {
-  return <></>;
-}
+const App = () => {
+  return (
+    <>
+      <AppRoutes />
+      <GlobalLoader />
+    </>
+  );
+};
 
 export default App;
