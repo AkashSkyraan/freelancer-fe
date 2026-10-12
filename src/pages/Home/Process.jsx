@@ -1,60 +1,134 @@
 import icons from "../../config/Icons";
 import images from "../../config/Images";
+import useHomeModeStore from "../../store/HomeModeStore";
 
-const steps = [
-  {
-    id: 1,
-    title: "Create Profile",
-    description:
-      "Browse high-demand projects and connect with skilled freelancers today.",
-    color: "bg-amber-400",
-  },
-  {
-    id: 2,
-    title: "Document Verify",
-    description:
-      "Browse high-demand projects and connect with skilled freelancers today.",
-    color: "bg-red-500",
-  },
-  {
-    id: 3,
-    title: "Explore Projects",
-    description:
-      "Browse high-demand projects and connect with skilled freelancers today.",
-    color: "bg-green-500",
-  },
-];
+const Process = () => {
+  const homeMode = useHomeModeStore((state) => state.homeMode);
 
-// `position` only applies on lg screens (floating around the section).
-// On mobile/tablet the icons are shown as a vertical column on the right.
-const appIcons = [
-  {
-    id: "figma",
-    name: "Figma",
-    src: icons.FigmaIcon,
-    position: "lg:left-[16%] lg:top-[15%]",
-  },
-  {
-    id: "illustrator",
-    name: "Illustrator",
-    src: icons.IllustratorIcon,
-    position: "lg:left-[78%] lg:top-[15%]",
-  },
-  {
-    id: "wordpress",
-    name: "WordPress",
-    src: icons.WordpressIcon,
-    position: "lg:left-[35%] lg:top-[77%]",
-  },
-  {
-    id: "flutter",
-    name: "Flutter",
-    src: icons.FlutterIcon,
-    position: "lg:left-[66%] lg:top-[83%]",
-  },
-];
+  // Freelancer content
+  const freelancerSteps = [
+    {
+      id: 1,
+      title: "Create Profile",
+      description:
+        "Browse high-demand projects and connect with skilled freelancers today.",
+      color: "bg-amber-400",
+    },
+    {
+      id: 2,
+      title: "Document Verify",
+      description:
+        "Browse high-demand projects and connect with skilled freelancers today.",
+      color: "bg-red-500",
+    },
+    {
+      id: 3,
+      title: "Explore Projects",
+      description:
+        "Browse high-demand projects and connect with skilled freelancers today.",
+      color: "bg-green-500",
+    },
+  ];
 
-export default function Process() {
+  const freelancerAppIcons = [
+    {
+      id: "figma",
+      name: "Figma",
+      src: icons.FigmaIcon,
+      position: "lg:left-[16%] lg:top-[15%]",
+    },
+    {
+      id: "illustrator",
+      name: "Illustrator",
+      src: icons.IllustratorIcon,
+      position: "lg:left-[78%] lg:top-[15%]",
+    },
+    {
+      id: "wordpress",
+      name: "WordPress",
+      src: icons.WordpressIcon,
+      position: "lg:left-[35%] lg:top-[77%]",
+    },
+    {
+      id: "flutter",
+      name: "Flutter",
+      src: icons.FlutterIcon,
+      position: "lg:left-[66%] lg:top-[83%]",
+    },
+  ];
+
+  // Client content
+  const clientSteps = [
+    {
+      id: 1,
+      title: "Create Profile",
+      description:
+        "Browse high-demand projects and connect with skilled freelancers today.",
+      color: "bg-amber-400",
+    },
+    {
+      id: 2,
+      title: "Document Verify",
+      description:
+        "Browse high-demand projects and connect with skilled freelancers today.",
+      color: "bg-red-500",
+    },
+    {
+      id: 3,
+      title: "Find Freelancers",
+      description:
+        "Browse high-demand projects and connect with skilled freelancers today.",
+      color: "bg-green-500",
+    },
+  ];
+
+  const clientAppIcons = [
+    {
+      id: "1",
+      name: "person1",
+      src: icons.Persons1Icon,
+      position: "lg:left-[16%] lg:top-[15%]",
+    },
+    {
+      id: "2",
+      name: "person2",
+      src: icons.Persons2Icon,
+      position: "lg:left-[78%] lg:top-[15%]",
+    },
+    {
+      id: "3",
+      name: "person3",
+      src: icons.Persons3Icon,
+      position: "lg:left-[35%] lg:top-[77%]",
+    },
+    {
+      id: "4",
+      name: "person4",
+      src: icons.Persons4Icon,
+      position: "lg:left-[66%] lg:top-[83%]",
+    },
+  ];
+
+  // Select content based on the current home mode
+  const processContent =
+    homeMode === "freelancer"
+      ? {
+          title: "Process of find Projects",
+          description:
+            "Browse high-demand projects and connect with skilled freelancers today.",
+          steps: freelancerSteps,
+          appIcons: freelancerAppIcons,
+        }
+      : {
+          title: "Process of find Freelancers",
+          description:
+            "Browse high-demand projects and connect with skilled freelancers today.",
+          steps: clientSteps,
+          appIcons: clientAppIcons,
+        };
+
+  const { title, description, steps, appIcons } = processContent;
+
   return (
     <section className="relative w-full overflow-hidden bg-gradient-to-r from-sky-50 via-emerald-50 to-orange-50 py-10 sm:py-20">
       {/* faint grid */}
@@ -72,26 +146,26 @@ export default function Process() {
         {appIcons.map(({ id, name, src, position }) => (
           <div
             key={id}
-            className={`flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md sm:h-11 sm:w-11 lg:absolute lg:h-13 lg:w-13 ${position}`}
+            className={`flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md sm:h-11 sm:w-11 lg:absolute lg:h-17 lg:w-17 ${position}`}
           >
             <img
               src={src}
               alt={name}
-              className="h-5 w-5 object-contain sm:h-7 sm:w-7"
+              className="h-5 w-5 object-contain sm:h-10 sm:w-10"
             />
           </div>
         ))}
       </div>
 
-      <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+      <div className="relative mx-auto w-[95%] px-4 sm:px-6 lg:px-8">
         {/* Heading */}
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 sm:text-3xl">
-            Process of find Projects
+          <h2 className="text-3xl font-bold text-gray-900 sm:text-3xl">
+            {title}
           </h2>
-          <p className="mx-auto mt-3 max-w-md text-sm text-gray-600">
-            Browse high-demand projects and connect with skilled freelancers
-            today.
+
+          <p className="mx-auto mt-3 max-w-md text-base text-gray-600">
+            {description}
           </p>
         </div>
 
@@ -99,6 +173,7 @@ export default function Process() {
         <div className="relative mt-10 pr-14 sm:mt-12 sm:pr-16 lg:pr-0">
           {/* vertical line (mobile/tablet) */}
           <span className="absolute bottom-6 left-[22px] top-6 w-px bg-gray-300 lg:hidden" />
+
           {/* horizontal line (lg) */}
           <span className="absolute left-[16.66%] right-[16.66%] top-[22px] hidden h-px bg-gray-300 lg:block" />
 
@@ -113,11 +188,13 @@ export default function Process() {
                 >
                   {id}
                 </span>
+
                 <div className="lg:mt-5">
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-xl font-semibold text-gray-900">
                     {title}
                   </h3>
-                  <p className="mt-2 max-w-[220px] text-sm leading-relaxed text-gray-600 sm:max-w-xs lg:mx-auto">
+
+                  <p className="mt-2 max-w-[220px] text-base leading-relaxed text-gray-600 sm:max-w-xs lg:mx-auto">
                     {description}
                   </p>
                 </div>
@@ -128,4 +205,6 @@ export default function Process() {
       </div>
     </section>
   );
-}
+};
+
+export default Process;

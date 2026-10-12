@@ -20,8 +20,18 @@ import DesignationIcon from "../assets/Icons/designation.png";
 import DollarIcon from "../assets/Icons/dollar.png";
 import TimeIcon from "../assets/Icons/time.png";
 import PersonsIcon from "../assets/Icons/persons.png";
+import Persons1Icon from "../assets/Icons/person-1.png";
+import Persons2Icon from "../assets/Icons/person-2.png";
+import Persons3Icon from "../assets/Icons/person-3.png";
+import Persons4Icon from "../assets/Icons/person-4.png";
+import StarIcon from "../assets/Icons/star.png";
 
 const icons = {
+  StarIcon,
+  Persons1Icon,
+  Persons2Icon,
+  Persons3Icon,
+  Persons4Icon,
   DesignationIcon,
   DollarIcon,
   TimeIcon,

@@ -75,10 +75,10 @@ export default function Categories({ categories = mockCategories }) {
   return (
     <section className="w-full bg-white py-10 sm:py-14">
       <div className="mx-auto w-[90%] px-4 sm:px-6 lg:px-8">
-        <h2 className="text-xl font-semibold text-gray-900 sm:text-2xl">
+        <h2 className="text-xl font-semibold text-gray-900 sm:text-3xl">
           Browse by categories
         </h2>
-        <p className="mt-2 text-sm text-gray-600">
+        <p className="mt-2 text-base text-gray-600">
           Browse talent by category and hire experts who match perfectly.
         </p>
 
@@ -102,12 +102,12 @@ export default function Categories({ categories = mockCategories }) {
                 <img
                   src={Icons[icon] ?? Icons.palette}
                   alt=""
-                  className="h-6 w-6 object-contain"
+                  className="h-7 w-7 object-contain"
                 />
-                <h3 className="mt-3 text-sm font-semibold text-gray-900">
+                <h3 className="mt-3 text-base font-semibold text-gray-900">
                   {title}
                 </h3>
-                <p className="mt-2 text-xs text-gray-500">
+                <p className="mt-2 text-sm text-gray-500">
                   {projectsCount} + Projects
                 </p>
               </div>

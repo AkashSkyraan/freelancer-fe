@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import ProjectCard from "../../components/card/ProjectCard";
 
-// Mock data – in index.jsx call your API and pass the response as `projects`.
+import ProjectCard from "../../components/card/ProjectCard";
+import FreelancerCard from "../../components/card/FreelancerCard";
+import useHomeModeStore from "../../store/HomeModeStore";
+
+// Mock project data
 const mockProjects = [
   {
     id: 1,
@@ -73,6 +76,74 @@ const mockProjects = [
   },
 ];
 
+// Replace this with freelancer data matching your FreelancerCard props.
+const mockFreelancers = [
+  {
+    id: 1,
+    name: "Arun Kumar",
+    avatar: "https://i.pravatar.cc/150?img=12",
+    coverImage: "https://picsum.photos/seed/design-cover/500/250",
+    category: "UI/UX Designer",
+    location: "Coimbatore, Tamil Nadu",
+    isAvailable: true,
+    totalJobs: 42,
+    completedPercent: 95,
+    rating: 4.9,
+    skills: ["Figma", "Photoshop", "Adobe XD", "Prototyping"],
+    href: "/freelancers/1",
+  },
+  {
+    id: 2,
+    name: "Priya Sharma",
+    avatar: "https://i.pravatar.cc/150?img=47",
+    coverImage: "https://picsum.photos/seed/development-cover/500/250",
+    category: "Full Stack Developer",
+    location: "Chennai, Tamil Nadu",
+    isAvailable: true,
+    totalJobs: 36,
+    completedPercent: 92,
+    rating: 4.8,
+    skills: ["React", "Node.js", "MongoDB", "Express"],
+    href: "/freelancers/2",
+  },
+  {
+    id: 3,
+    name: "Rahul Mehta",
+    avatar: "https://i.pravatar.cc/150?img=33",
+    coverImage: "https://picsum.photos/seed/marketing-cover/500/250",
+    category: "Digital Marketing Specialist",
+    location: "Bengaluru, Karnataka",
+    isAvailable: false,
+    totalJobs: 58,
+    completedPercent: 97,
+    rating: 4.9,
+    skills: [
+      "SEO",
+      "Google Ads",
+      "Content Marketing",
+      "Analytics",
+      "AI",
+      "new skill",
+      "322",
+    ],
+    href: "/freelancers/3",
+  },
+  {
+    id: 4,
+    name: "Sneha Reddy",
+    avatar: "https://i.pravatar.cc/150?img=44",
+    coverImage: "https://picsum.photos/seed/graphic-design-cover/500/250",
+    category: "Graphic Designer",
+    location: "Hyderabad, Telangana",
+    isAvailable: true,
+    totalJobs: 29,
+    completedPercent: 90,
+    rating: 4.7,
+    skills: ["Illustrator", "Photoshop", "Canva", "Branding"],
+    href: "/freelancers/4",
+  },
+];
+
 const ChevronIcon = ({ direction }) => (
   <svg
     viewBox="0 0 24 24"
@@ -88,51 +159,94 @@ const ChevronIcon = ({ direction }) => (
   </svg>
 );
 
-export default function TrendingProjects({ projects = mockProjects }) {
+const TrendingProjects = ({
+  projects = mockProjects,
+  freelancers = mockFreelancers,
+}) => {
+  const homeMode = useHomeModeStore((state) => state.homeMode);
+
+  const isFreelancerMode = homeMode === "freelancer";
+
+  // Choose content based on Home mode
+  const sectionContent = isFreelancerMode
+    ? {
+        title: "Trending Projects",
+        description:
+          "Browse high-demand projects and connect with skilled freelancers today.",
+        linkText: "Explore All Projects",
+        link: "/projects",
+        items: projects,
+      }
+    : {
+        title: "Top rated Freelancers",
+        description:
+          "Browse high-demand projects and connect with skilled freelancers today.",
+        linkText: "Explore All Freelancers",
+        link: "/freelancers",
+        items: freelancers,
+      };
+
   const trackRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
   const updateArrows = useCallback(() => {
     const el = trackRef.current;
+
     if (!el) return;
+
     setCanScrollLeft(el.scrollLeft > 4);
     setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
   }, []);
 
   useEffect(() => {
+    const el = trackRef.current;
+
+    if (el) {
+      el.scrollLeft = 0;
+    }
+
     updateArrows();
+
     window.addEventListener("resize", updateArrows);
+
     return () => window.removeEventListener("resize", updateArrows);
-  }, [updateArrows, projects]);
+  }, [updateArrows, homeMode, projects, freelancers]);
 
   const scrollByCard = (dir) => {
     const el = trackRef.current;
+
     if (!el || !el.firstElementChild) return;
+
     const gap = parseFloat(getComputedStyle(el).columnGap) || 0;
     const step = el.firstElementChild.offsetWidth + gap;
-    el.scrollBy({ left: dir * step, behavior: "smooth" });
+
+    el.scrollBy({
+      left: dir * step,
+      behavior: "smooth",
+    });
   };
 
   return (
-    <section className="w-full bg-white py-10 sm:py-14">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+    <section className="w-[95%] mx-auto bg-white py-10 sm:py-14">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Heading row */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 sm:text-2xl">
-              Trending Projects
+            <h2 className="text-xl font-semibold text-gray-900 sm:text-3xl">
+              {sectionContent.title}
             </h2>
-            <p className="mt-2 text-sm text-gray-600">
-              Browse high-demand projects and connect with skilled freelancers
-              today.
+
+            <p className="mt-2 text-base text-gray-600">
+              {sectionContent.description}
             </p>
           </div>
+
           <a
-            href="/freelancers"
-            className="shrink-0 text-xs text-blue-500 underline underline-offset-2 hover:text-blue-600"
+            href={sectionContent.link}
+            className="shrink-0 text-sm text-blue-500 underline underline-offset-2 hover:text-blue-600"
           >
-            Explore All Freelancers
+            {sectionContent.linkText}
           </a>
         </div>
 
@@ -155,12 +269,16 @@ export default function TrendingProjects({ projects = mockProjects }) {
             onScroll={updateArrows}
             className="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            {projects.map((project) => (
+            {sectionContent.items.map((item) => (
               <div
-                key={project.id}
+                key={item.id}
                 className="w-[88%] shrink-0 snap-start sm:w-[calc(50%-0.5rem)] lg:w-[calc(40%-0.5rem)]"
               >
-                <ProjectCard project={project} />
+                {isFreelancerMode ? (
+                  <ProjectCard project={item} />
+                ) : (
+                  <FreelancerCard freelancer={item} />
+                )}
               </div>
             ))}
           </div>
@@ -179,4 +297,6 @@ export default function TrendingProjects({ projects = mockProjects }) {
       </div>
     </section>
   );
-}
+};
+
+export default TrendingProjects;

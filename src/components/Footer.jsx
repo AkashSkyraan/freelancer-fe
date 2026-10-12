@@ -72,7 +72,7 @@ export default function Footer() {
         <div className="grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-4">
           {columns.map((col) => (
             <div key={col.title}>
-              <h3 className="font-medium leading-tight text-white">
+              <h3 className="font-medium text-xl leading-tight text-white">
                 {col.title}
               </h3>
 
@@ -81,7 +81,7 @@ export default function Footer() {
                   <li key={link.label}>
                     <a
                       href={link.href}
-                      className="text-sm leading-none text-gray-300 transition hover:text-white"
+                      className="text-base leading-none text-gray-300 transition hover:text-white"
                     >
                       {link.label}
                     </a>

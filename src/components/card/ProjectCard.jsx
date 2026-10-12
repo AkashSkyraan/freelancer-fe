@@ -122,13 +122,13 @@ export default function ProjectCard({ project }) {
           <img
             src={companyLogo}
             alt={companyName}
-            className="h-11 w-11 shrink-0 rounded-full bg-indigo-100 object-cover sm:h-12 sm:w-12"
+            className="h-11 w-11 shrink-0 rounded-full bg-indigo-100 object-cover sm:h-14 sm:w-14"
           />
           <div className="min-w-0">
-            <h4 className="truncate text-sm font-semibold text-gray-900">
+            <h4 className="truncate text-base font-semibold text-gray-900">
               {companyName}
             </h4>
-            <p className="truncate text-xs text-blue-500">@{postedBy}</p>
+            <p className="truncate text-sm text-blue-500">@{postedBy}</p>
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2 text-gray-800">
@@ -158,18 +158,18 @@ export default function ProjectCard({ project }) {
       </div>
 
       {/* Title – always reserves exactly 2 lines (1 line or 2 lines look the same) */}
-      <h3 className="mt-2 line-clamp-2 min-h-[3.5rem] text-lg font-semibold leading-7 text-gray-900 sm:text-lg">
+      <h3 className="mt-2 text-lg font-semibold leading-7 text-gray-900 sm:text-lg line-clamp-1">
         {title}
       </h3>
 
       {/* Posted + location – always a single line */}
-      <div className="mt-2 flex h-5 items-center gap-x-4 text-xs text-[#EA4335] sm:text-[13px]">
+      <div className="mt-3 flex h-5 items-center gap-x-4 text-xs text-[#EA4335] sm:text-sm">
         <Meta
           icon={
             <img
               src={icons.ShareIcon}
               alt=""
-              className="h-3.5 w-3.5 shrink-0 object-contain"
+              className="h-4 w-4 shrink-0 object-contain"
             />
           }
           className="shrink-0"
@@ -181,7 +181,7 @@ export default function ProjectCard({ project }) {
             <img
               src={icons.LocationIcon}
               alt=""
-              className="h-3.5 w-3.5 shrink-0 object-contain"
+              className="h-4 w-4 shrink-0 object-contain"
             />
           }
         >
@@ -190,16 +190,16 @@ export default function ProjectCard({ project }) {
       </div>
 
       {/* Description – always reserves exactly 3 lines */}
-      <p className="mt-2 line-clamp-2  text-xs leading-5 text-gray-500">
+      <p className="mt-4 line-clamp-2 text-sm leading-5 text-gray-500">
         {description}
       </p>
 
       {/* Skills – fixed height row */}
-      <div className="mt-2 flex h-8 items-center gap-2">
+      <div className="mt-4 flex h-8 items-center gap-2">
         {visibleSkills.map((skill) => (
           <span
             key={skill}
-            className="min-w-0 truncate rounded-full border border-blue-500 bg-blue-50/60 px-4 py-1.5 text-xs font-medium text-blue-500 sm:px-6"
+            className="min-w-0 truncate rounded-full border border-blue-500 bg-blue-50/60 px-4 py-1.5 text-sm font-medium text-blue-500 sm:px-6"
           >
             {skill}
           </span>
@@ -212,13 +212,13 @@ export default function ProjectCard({ project }) {
       </div>
 
       {/* Info row – reserves room for 2 lines so it can wrap on narrow cards without shifting the layout */}
-      <div className="mt-2 flex min-h-[1.75rem] flex-wrap content-start items-start gap-x-4 gap-y-2 text-[11px] text-[#009D18]">
+      <div className="mt-4 flex min-h-[1.75rem] flex-wrap content-start items-start gap-x-4 gap-y-3 text-xs text-[#009D18]">
         <Meta
           icon={
             <img
               src={icons.DesignationIcon}
               alt=""
-              className="h-3.5 w-3.5 shrink-0 object-contain"
+              className="h-4 w-4 shrink-0 object-contain"
             />
           }
         >
@@ -229,7 +229,7 @@ export default function ProjectCard({ project }) {
             <img
               src={icons.TimeIcon}
               alt=""
-              className="h-3.5 w-3.5 shrink-0 object-contain"
+              className="h-4 w-4 shrink-0 object-contain"
             />
           }
         >
@@ -240,7 +240,7 @@ export default function ProjectCard({ project }) {
             <img
               src={icons.PersonsIcon}
               alt=""
-              className="h-3.5 w-3.5 shrink-0 object-contain"
+              className="h-4 w-4 shrink-0 object-contain"
             />
           }
         >
@@ -251,7 +251,7 @@ export default function ProjectCard({ project }) {
             <img
               src={icons.DollarIcon}
               alt=""
-              className="h-3.5 w-3.5 shrink-0 object-contain"
+              className="h-4 w-4 shrink-0 object-contain"
             />
           }
         >
@@ -262,7 +262,7 @@ export default function ProjectCard({ project }) {
       {/* CTA – pinned to the bottom of the card */}
       <a
         href={href}
-        className="block w-full rounded-full bg-blue-500 py-3 text-center text-sm font-medium text-white transition hover:bg-blue-600"
+        className="block w-full rounded-full bg-[#0088FF] py-3 text-center text-sm font-medium text-white transition hover:bg-blue-600"
       >
         View Details
       </a>
