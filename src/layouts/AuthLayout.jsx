@@ -8,7 +8,7 @@ const AuthLayout = () => {
       <Header purpose="auth" />
 
       {/* Auth background */}
-      <main className="flex min-h-[calc(100svh-48px)] items-center justify-center bg-gradient-to-r from-sky-50 via-emerald-50 to-amber-50 px-4 py-0">
+      <main className="flex max-h-screen items-center justify-center bg-gradient-to-r from-sky-50 via-emerald-50 to-amber-50 px-4 py-0">
         <Outlet />
       </main>
     </div>

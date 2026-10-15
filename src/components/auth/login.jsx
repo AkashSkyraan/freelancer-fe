@@ -1,5 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Form } from "antd";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import images from "../../config/Images";
+import { requestOtp, signup, login } from "../../api/auth.api";
+import useHomeModeStore from "../../store/HomeModeStore";
+import userProfileStore from "../../store/UserProfileStore";
+import useLoadingStore from "../../store/LoadingStore";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const PASSWORD_REGEX =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s]).{6,}$/;
 
 const GoogleIcon = () => (
   <svg viewBox="0 0 48 48" className="h-5 w-5" aria-hidden="true">
@@ -29,7 +40,7 @@ const AppleIcon = () => (
     fill="currentColor"
     aria-hidden="true"
   >
-    <path d="M16.4 12.6c0-2.4 2-3.5 2.1-3.6-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.1 1-4 2.4-1.7 3-.4 7.3 1.2 9.7.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.1-.8 1.5 0 1.9.8 3.200.8 1.300 0 2.100-1.200 2.900-2.300.9-1.300 1.300-2.600 1.300-2.700 0 0-2.400-.9-2.400-3.700ZM14.100 5.500c.7-.8 1.100-1.900 1-3-1 0-2.100.7-2.800 1.500-.6.700-1.200 1.800-1 2.900 1.100.1 2.100-.6 2.800-1.400Z" />
+    <path d="M16.4 12.6c0-2.4 2-3.5 2.1-3.6-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.1 1-4 2.4-1.7 3-.4 7.3 1.2 9.7.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.1-.8 1.5 0 1.9.8 3.2.8 1.3 0 2.1-1.2 2.9-2.3.9-1.3 1.3-2.6 1.3-2.7 0 0-2.4-.9-2.4-3.7ZM14.1 5.5c.7-.8 1.1-1.9 1-3-1 0-2.1.7-2.8 1.5-.6.7-1.2 1.8-1 2.9 1.1.1 2.1-.6 2.8-1.4Z" />
   </svg>
 );
 
@@ -52,7 +63,7 @@ const EyeIcon = ({ open }) => (
     ) : (
       <>
         <path d="M3 10c2 3 5.2 5 9 5s7-2 9-5" />
-        <path d="m6 14-1.5 2.5M10 15.5 9.5 18M14 15.5l.5 2.5M18 14l1.500 2.500" />
+        <path d="m6 14-1.5 2.5M10 15.5 9.5 18M14 15.5l.5 2.5M18 14l1.5 2.5" />
       </>
     )}
   </svg>
@@ -64,35 +75,241 @@ const inputClass =
 const socialBtnClass =
   "flex h-10 w-full items-center justify-center gap-3 rounded-full border border-gray-300 bg-white text-sm font-medium text-gray-900 transition hover:bg-gray-50";
 
-// `onSubmit({ email, password })`, `onBack`, `onGoogle`, `onApple` are optional props.
-export default function LoginClient({
-  onSubmit,
-  onBack,
-  onGoogle,
-  onApple,
-  submitLabel = "Login",
-}) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+const LoginClient = ({ onSubmit, onBack, onGoogle, onApple, submitLabel }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSubmit?.({ email, password });
+  const [form] = Form.useForm();
+
+  const user_role = useHomeModeStore((state) => state.homeMode);
+  const fetchMe = userProfileStore((state) => state.fetchMe);
+  const setIsLoading = useLoadingStore((state) => state.setIsLoading);
+
+  const isSignup = location.pathname.replace(/\/+$/, "").endsWith("/signup");
+
+  const roleTitle = user_role === "freelancer" ? "Freelancer" : "Client";
+  const title = isSignup
+    ? `Sign up as a ${roleTitle}`
+    : `Login as a ${roleTitle}`;
+  const buttonText = submitLabel ?? (isSignup ? "Sign Up" : "Login");
+
+  const [email, setEmail] = useState(location.state?.email ?? "");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isRequestingOtp, setIsRequestingOtp] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [otpError, setOtpError] = useState("");
+
+  // Restore email when returning from OTP verification.
+  useEffect(() => {
+    if (location.state?.email) {
+      setEmail(location.state.email);
+
+      form.setFieldsValue({
+        email: location.state.email,
+      });
+    }
+  }, [location.state?.email, form]);
+
+  // Validate email before showing Verify Email.
+  const isValidEmail = EMAIL_REGEX.test(email.trim());
+
+  // Check whether the returned email is verified.
+  const isEmailVerified =
+    isSignup &&
+    Number(location.state?.is_verified) === 1 &&
+    String(location.state?.email ?? "")
+      .trim()
+      .toLowerCase() === email.trim().toLowerCase();
+
+  // Validate fields only when signup or login is submitted.
+  const validateCredentials = (values) => {
+    const enteredEmail = String(values.email ?? "").trim();
+    const enteredPassword = String(values.password ?? "");
+
+    let nextEmailError = "";
+    let nextPasswordError = "";
+
+    if (!enteredEmail) {
+      nextEmailError = "Please enter your email address.";
+    } else if (!EMAIL_REGEX.test(enteredEmail)) {
+      nextEmailError = "Please enter a valid email address.";
+    }
+
+    if (!enteredPassword) {
+      nextPasswordError = "Please enter your password.";
+    } else if (!PASSWORD_REGEX.test(enteredPassword)) {
+      nextPasswordError =
+        "Password must be minimum 6 characters with atleast one uppercase and one lowercase and one symbol and number";
+    }
+
+    setEmailError(nextEmailError);
+    setPasswordError(nextPasswordError);
+
+    return !nextEmailError && !nextPasswordError;
+  };
+
+  // Request OTP and navigate to verification.
+  const handleVerifyEmail = async () => {
+    if (!isSignup || !isValidEmail || isRequestingOtp || isEmailVerified) {
+      return;
+    }
+
+    setIsRequestingOtp(true);
+    setOtpError("");
+
+    const payload = {
+      email: email.trim(),
+      phn_num: "",
+      c_code: "",
+      type: 2,
+    };
+
+    try {
+      setIsLoading(true);
+
+      const response = await requestOtp(payload);
+
+      if (!response?.success) {
+        throw new Error(response?.message || "Unable to request OTP.");
+      }
+
+      navigate("/verify", {
+        state: {
+          email: email.trim(),
+          purpose: "signup",
+          returnto: "/signup",
+        },
+      });
+    } catch (error) {
+      console.error("Request OTP failed:", error);
+
+      setOtpError(
+        error?.response?.data?.message ||
+          error.message ||
+          "Unable to send OTP. Please try again.",
+      );
+    } finally {
+      setIsRequestingOtp(false);
+      setIsLoading(false);
+    }
+  };
+
+  // Signup
+  const handleSignup = async (values) => {
+    setOtpError("");
+
+    if (!validateCredentials(values)) {
+      return;
+    }
+
+    if (!isEmailVerified) {
+      setOtpError("Please verify your email before signing up.");
+      return;
+    }
+
+    const payload = {
+      email: values.email.trim(),
+      password: values.password,
+      user_role: user_role === "freelancer" ? "FREELANCER" : "CLIENT",
+    };
+
+    setIsLoading(true);
+
+    try {
+      const response = await signup(payload);
+
+      if (!response?.success) {
+        throw new Error(response?.message || "Signup failed.");
+      }
+
+      const sessionLoaded = await fetchMe();
+
+      if (!sessionLoaded) {
+        throw new Error("Account created, but unable to load user details.");
+      }
+
+      navigate("/", { replace: true });
+    } catch (error) {
+      console.error("Signup failed:", error);
+
+      setOtpError(
+        error?.response?.data?.message ||
+          error.message ||
+          "Unable to sign up. Please try again.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Login
+  const handleLogin = async (values) => {
+    setOtpError("");
+
+    if (!validateCredentials(values)) {
+      return;
+    }
+
+    const payload = {
+      email: values.email.trim(),
+      password: values.password,
+      role: user_role === "freelancer" ? "FREELANCER" : "CLIENT",
+    };
+
+    setIsLoading(true);
+
+    try {
+      const response = await login(payload);
+
+      if (!response?.success) {
+        throw new Error(response?.message || "Login failed.");
+      }
+
+      const sessionLoaded = await fetchMe();
+
+      if (!sessionLoaded) {
+        throw new Error("Login succeeded, but unable to load user details.");
+      }
+
+      navigate("/", { replace: true });
+    } catch (error) {
+      console.error("Login failed:", error);
+
+      setOtpError(
+        error?.response?.data?.message ||
+          error.message ||
+          "Unable to log in. Please try again.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Clear validation and API errors when the user edits fields.
+  const handleValuesChange = (changedValues) => {
+    if ("email" in changedValues) {
+      setEmail(changedValues.email ?? "");
+      setEmailError("");
+      setOtpError("");
+    }
+
+    if ("password" in changedValues) {
+      setPasswordError("");
+      setOtpError("");
+    }
   };
 
   return (
-    // Fills only the space under the header (h-14 on mobile, h-16 from sm up),
-    // so the page never grows taller than the screen on desktop.
     <section className="flex min-h-[calc(100dvh-3.5rem)] w-full items-center justify-center bg-gradient-to-br from-sky-50 via-emerald-50 to-orange-50 px-4 py-4 sm:min-h-[calc(100dvh-4rem)] sm:px-6 sm:py-5">
       <div className="grid w-full max-w-4xl grid-cols-1 gap-4 rounded-2xl bg-white p-4 shadow-sm md:grid-cols-2 md:gap-5 md:p-3">
         {/* Left: form */}
         <div className="flex flex-col justify-center px-1 py-1 md:px-3 md:py-2">
           {/* Title */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 mb-4">
             <button
               type="button"
-              onClick={onBack}
+              onClick={onBack ?? (() => navigate("/"))}
               aria-label="Go back"
               className="text-gray-900 transition hover:text-blue-500"
             >
@@ -109,12 +326,23 @@ export default function LoginClient({
                 <path d="M19 12H5M11 6l-6 6 6 6" />
               </svg>
             </button>
+
             <h1 className="text-lg font-semibold text-gray-900 sm:text-xl">
-              Login as a Client
+              {title}
             </h1>
           </div>
 
-          <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+          <Form
+            form={form}
+            noValidate
+            initialValues={{
+              email: location.state?.email ?? "",
+              password: "",
+            }}
+            onValuesChange={handleValuesChange}
+            onFinish={isSignup ? handleSignup : handleLogin}
+            className="mt-4 space-y-3"
+          >
             {/* Email */}
             <div>
               <label
@@ -123,16 +351,64 @@ export default function LoginClient({
               >
                 Email
               </label>
-              <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="skyraan123@gmail.com"
-                className={inputClass}
-              />
+
+              <Form.Item name="email" noStyle>
+                <input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="Enter email"
+                  className={inputClass}
+                />
+              </Form.Item>
+
+              {/* Email/API error: animate height only while showing a message. */}
+              <div
+                className={`grid overflow-hidden transition-all duration-300 ease-in-out ${
+                  emailError || otpError
+                    ? "mt-1 grid-rows-[1fr] opacity-100"
+                    : "mt-0 grid-rows-[0fr] opacity-0"
+                }`}
+              >
+                <p
+                  aria-live="polite"
+                  className="min-h-0 overflow-hidden text-xs leading-5 text-red-500"
+                >
+                  {emailError || otpError}
+                </p>
+              </div>
+
+              {/* Email verification status */}
+              <div className="mt-1 min-h-5 text-right">
+                {isSignup && isEmailVerified ? (
+                  <span className="inline-flex items-center justify-end gap-1 text-sm text-blue">
+                    <svg
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      className="h-4 w-4"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M4 10.5 8 14.5 16 5.5"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    Email verified
+                  </span>
+                ) : isSignup && isValidEmail ? (
+                  <button
+                    type="button"
+                    onClick={handleVerifyEmail}
+                    disabled={isRequestingOtp}
+                    className="cursor-pointer text-sm text-blue hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {isRequestingOtp ? "Sending OTP..." : "Verify email"}
+                  </button>
+                ) : null}
+              </div>
             </div>
 
             {/* Password */}
@@ -143,44 +419,68 @@ export default function LoginClient({
               >
                 Password
               </label>
+
               <div className="relative">
-                <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter password"
-                  className={`${inputClass} pr-12`}
-                />
+                <Form.Item name="password" noStyle>
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete={
+                      isSignup ? "new-password" : "current-password"
+                    }
+                    placeholder="Enter password"
+                    className={`${inputClass} pr-12`}
+                  />
+                </Form.Item>
+
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-800 transition hover:text-blue-500"
+                  className="absolute right-4 top-5 -translate-y-1/2 text-gray-800 transition hover:text-blue-500"
                 >
                   <EyeIcon open={showPassword} />
                 </button>
               </div>
-              <div className="mt-2 text-right">
-                <a
-                  href="/forgot-password"
-                  className="text-sm text-gray-800 underline underline-offset-2 hover:text-blue-500"
+
+              {/* Password error: animate height only while showing a message. */}
+              <div
+                className={`grid overflow-hidden transition-all duration-300 ease-in-out ${
+                  passwordError
+                    ? "mt-1 grid-rows-[1fr] opacity-100"
+                    : "mt-0 grid-rows-[0fr] opacity-0"
+                }`}
+              >
+                <p
+                  aria-live="polite"
+                  className="min-h-0 overflow-hidden text-xs leading-5 text-red-500"
                 >
-                  Forgot password
-                </a>
+                  {passwordError}
+                </p>
+              </div>
+
+              {/* Forgot password: Login only */}
+              <div className="mt-2 h-5 text-right">
+                {!isSignup && (
+                  <Link
+                    to="/forgot-password"
+                    state={{ purpose: "forgot-password" }}
+                    className="text-sm leading-5 !text-gray-800 underline underline-offset-2 hover:text-blue-500!"
+                  >
+                    Forgot password
+                  </Link>
+                )}
               </div>
             </div>
 
             {/* Submit */}
             <button
               type="submit"
-              className="h-10 w-full rounded-full bg-[#0088FF] text-base cursor-pointer font-medium text-white transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="h-10 w-full cursor-pointer rounded-full bg-[#0088FF] text-base font-medium text-white transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
             >
-              {submitLabel}
+              {buttonText}
             </button>
-          </form>
+          </Form>
 
           {/* Divider */}
           <div className="my-3 flex items-center gap-3 text-xs text-gray-800">
@@ -195,6 +495,7 @@ export default function LoginClient({
               <GoogleIcon />
               Google
             </button>
+
             <button type="button" onClick={onApple} className={socialBtnClass}>
               <AppleIcon />
               Apple
@@ -203,24 +504,35 @@ export default function LoginClient({
 
           {/* Footer link */}
           <p className="mt-4 text-center text-sm text-gray-900">
-            You don’t have an Account ?{" "}
-            <a href="/signup" className="text-blue-500 hover:underline">
-              Sign up
-            </a>
+            {isSignup ? (
+              <>
+                Already have an Account?{" "}
+                <Link to="/login" className="text-blue-500 hover:underline">
+                  Login
+                </Link>
+              </>
+            ) : (
+              <>
+                You don’t have an Account?{" "}
+                <Link to="/signup" className="text-blue-500 hover:underline">
+                  Sign up
+                </Link>
+              </>
+            )}
           </p>
         </div>
 
-        {/* Right: image (hidden on mobile).
-            The img is absolutely positioned, so it fills the panel but never
-            makes the card taller – the form decides the card height. */}
+        {/* Right: image */}
         <div className="relative hidden overflow-hidden rounded-2xl bg-gradient-to-b from-sky-300 to-blue-500 md:block">
           <img
             src={images.AuthBannerImage}
-            alt="Client login"
+            alt="Client authentication"
             className="absolute inset-0 h-full w-full object-contain"
           />
         </div>
       </div>
     </section>
   );
-}
+};
+
+export default LoginClient;

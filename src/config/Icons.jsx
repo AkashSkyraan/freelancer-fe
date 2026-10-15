@@ -25,8 +25,16 @@ import Persons2Icon from "../assets/Icons/person-2.png";
 import Persons3Icon from "../assets/Icons/person-3.png";
 import Persons4Icon from "../assets/Icons/person-4.png";
 import StarIcon from "../assets/Icons/star.png";
+import RecentIcon from "../assets/Icons/recent.png";
+import LogoutIcon from "../assets/Icons/logout.png";
+import NotificationIcon from "../assets/Icons/notification.png";
+import MessageIcon from "../assets/Icons/message.png";
 
 const icons = {
+  MessageIcon,
+  NotificationIcon,
+  RecentIcon,
+  LogoutIcon,
   StarIcon,
   Persons1Icon,
   Persons2Icon,

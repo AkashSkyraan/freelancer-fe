@@ -3,6 +3,8 @@
 
 @theme {
   --font-sans: "DM Sans", sans-serif;
+  
+  --color-blue: #0088FF;
 }
 
 body {

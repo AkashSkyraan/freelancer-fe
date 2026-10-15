@@ -2,6 +2,16 @@ import icons from "../../config/Icons";
 import images from "../../config/Images";
 import useHomeModeStore from "../../store/HomeModeStore";
 
+// Icon positions below lg (zigzag: left lane, right lane, left lane, right lane).
+// Index 0..3 matches the icon order. From lg up these are ignored and each
+// icon uses its own `position` (floating layout) instead.
+const zigzagPositions = [
+  "right-[4.5rem] top-[28%] sm:right-[33%]",
+  "right-6 top-[45%] sm:right-[12%]",
+  "right-[4.5rem] top-[63%] sm:right-[33%]",
+  "right-6 top-[81%] sm:right-[12%]",
+];
+
 const Process = () => {
   const homeMode = useHomeModeStore((state) => state.homeMode);
 
@@ -141,17 +151,17 @@ const Process = () => {
         }}
       />
 
-      {/* App icons: vertical column on mobile/tablet, floating on lg */}
-      <div className="absolute right-3 top-1/2 z-10 flex -translate-y-1/2 flex-col gap-6 sm:right-8 sm:gap-8 lg:inset-0 lg:right-0 lg:block lg:translate-y-0">
-        {appIcons.map(({ id, name, src, position }) => (
+      {/* App icons: zigzag on mobile/tablet (hidden below 400px), floating on lg */}
+      <div className="pointer-events-none absolute inset-0 z-10 hidden min-[400px]:block">
+        {appIcons.map(({ id, name, src, position }, index) => (
           <div
             key={id}
-            className={`flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md sm:h-11 sm:w-11 lg:absolute lg:h-17 lg:w-17 ${position}`}
+            className={`absolute flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md sm:h-11 sm:w-11 lg:right-auto lg:h-17 lg:w-17 ${zigzagPositions[index]} ${position}`}
           >
             <img
               src={src}
               alt={name}
-              className="h-5 w-5 object-contain sm:h-10 sm:w-10"
+              className="h-7 w-7 object-contain sm:h-10 sm:w-10"
             />
           </div>
         ))}
@@ -171,18 +181,21 @@ const Process = () => {
 
         {/* Steps */}
         <div className="relative mt-10 pr-14 sm:mt-12 sm:pr-16 lg:pr-0">
-          {/* vertical line (mobile/tablet) */}
-          <span className="absolute bottom-6 left-[22px] top-6 w-px bg-gray-300 lg:hidden" />
-
           {/* horizontal line (lg) */}
           <span className="absolute left-[16.66%] right-[16.66%] top-[22px] hidden h-px bg-gray-300 lg:block" />
 
           <ol className="relative flex flex-col gap-10 lg:grid lg:grid-cols-3 lg:gap-6">
-            {steps.map(({ id, title, description, color }) => (
+            {steps.map(({ id, title, description, color }, index) => (
               <li
                 key={id}
-                className="flex items-start gap-4 text-left lg:flex-col lg:items-center lg:gap-0 lg:text-center"
+                className="relative flex items-start gap-4 text-left lg:flex-col lg:items-center lg:gap-0 lg:text-center"
               >
+                {/* vertical connector (mobile/tablet): from this circle's center
+                    to the next circle's center, so nothing shows before 1 or after 3 */}
+                {index < steps.length - 1 && (
+                  <span className="absolute -bottom-[62px] left-[22px] top-[22px] w-px bg-gray-300 lg:hidden" />
+                )}
+
                 <span
                   className={`relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-base font-semibold text-white ${color}`}
                 >
